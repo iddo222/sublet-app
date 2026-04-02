@@ -961,7 +961,7 @@ clearDatesButtonText: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
@@ -973,7 +973,7 @@ clearDatesButtonText: {
     elevation: 2,
   },
   headerLeft: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 16,
     flex: 1,
@@ -996,6 +996,7 @@ clearDatesButtonText: {
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
+    alignSelf: 'flex-end',
   },
   headerSubtitle: {
     marginTop: 4,
@@ -1003,6 +1004,7 @@ clearDatesButtonText: {
     lineHeight: 24,
     color: '#4B5563',
     textAlign: 'right',
+    alignSelf: 'flex-end',
   },
   headerAction: {
     width: 40,
@@ -1221,6 +1223,7 @@ clearDatesButtonText: {
     textAlign: 'right',
     marginBottom: 14,
     width: '100%',
+    alignSelf: 'flex-end',
   },
   checkboxGrid: {
     flexDirection: 'row-reverse',
