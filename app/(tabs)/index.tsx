@@ -939,6 +939,7 @@ clearDatesButtonText: {
   fontSize: 16,
   color: '#111111',
   paddingRight: 12,
+  textAlign: 'right',
 },
   safeArea: {
     flex: 1,
