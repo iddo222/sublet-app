@@ -783,6 +783,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                     initialRegion={ISRAEL_REGION}
                     showsUserLocation={false}
                     onPress={() => setSelectedSublet(null)}
+                    onPanDrag={() => setSelectedSublet(null)}
                   >
                     {mappableSublets.map((sublet) => (
                       <Marker
@@ -816,31 +817,6 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                     </View>
                   )}
 
-                  {selectedSublet && (
-                    <View style={styles.popupCard}>
-                      <Pressable style={styles.popupClose} onPress={() => setSelectedSublet(null)}>
-                        <Ionicons name="close" size={18} color="#6B7280" />
-                      </Pressable>
-                      <Pressable
-                        onPress={() => {
-                          router.push(`/sublet/${selectedSublet.id}` as any);
-                          setSelectedSublet(null);
-                        }}
-                      >
-                        <Text style={styles.popupTitle} numberOfLines={1}>{selectedSublet.title}</Text>
-                        <Text style={styles.popupPrice}>
-                          {selectedSublet.price_per_month.toLocaleString()} ₪ לחודש
-                        </Text>
-                        <Text style={styles.popupInfo}>
-                          {[
-                            selectedSublet.num_rooms != null ? `${selectedSublet.num_rooms} חדרים` : null,
-                            selectedSublet.area_sqm != null ? `${selectedSublet.area_sqm} מ"ר` : null,
-                          ].filter(Boolean).join(' · ')}
-                        </Text>
-                      </Pressable>
-                      <View style={styles.popupArrow} />
-                    </View>
-                  )}
                 </View>
               )}
             </View>
@@ -909,6 +885,38 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
             )}
           </View>
         </ScrollView>
+
+        {selectedSublet && (
+          <View style={styles.popupCard}>
+            <Pressable style={styles.popupClose} onPress={() => setSelectedSublet(null)}>
+              <Ionicons name="close" size={18} color="#6B7280" />
+            </Pressable>
+            <Pressable
+              style={styles.popupContent}
+              onPress={() => {
+                router.push(`/sublet/${selectedSublet.id}` as any);
+                setSelectedSublet(null);
+              }}
+            >
+              <View style={styles.popupImagePlaceholder}>
+                <Ionicons name="home-outline" size={28} color="#D1D5DB" />
+              </View>
+              <View style={styles.popupBody}>
+                <Text style={styles.popupTitle} numberOfLines={1}>{selectedSublet.title}</Text>
+                <Text style={styles.popupLocation} numberOfLines={1}>
+                  {[selectedSublet.neighborhood, selectedSublet.city].filter(Boolean).join(' · ')}
+                </Text>
+                <Text style={styles.popupDates}>
+                  {formatCardDate(selectedSublet.available_from)} — {formatCardDate(selectedSublet.available_until)}
+                  {selectedSublet.num_rooms != null ? ` · ${selectedSublet.num_rooms} חדרים` : ''}
+                </Text>
+                <Text style={styles.popupPrice}>
+                  {selectedSublet.price_per_month.toLocaleString()} ₪ לחודש
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        )}
 
         <Pressable style={styles.postButton} onPress={() => router.push('/modal')}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -1362,25 +1370,23 @@ clearDatesButtonText: {
   },
   popupCard: {
     position: 'absolute',
-    top: 16,
-    alignSelf: 'center',
-    left: 24,
-    right: 24,
+    bottom: 96,
+    left: 14,
+    right: 14,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     shadowColor: '#000000',
     shadowOpacity: 0.2,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -2 },
     elevation: 10,
   },
   popupClose: {
     position: 'absolute',
-    top: 8,
-    left: 8,
+    top: 10,
+    left: 10,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -1389,40 +1395,44 @@ clearDatesButtonText: {
     justifyContent: 'center',
     zIndex: 1,
   },
+  popupContent: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 12,
+  },
+  popupImagePlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  popupBody: {
+    flex: 1,
+    gap: 2,
+  },
   popupTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
-    marginBottom: 4,
-    paddingLeft: 32,
   },
-  popupPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#22C55E',
-    textAlign: 'right',
-    marginBottom: 2,
-  },
-  popupInfo: {
+  popupLocation: {
     fontSize: 13,
     color: '#6B7280',
     textAlign: 'right',
   },
-  popupArrow: {
-    position: 'absolute',
-    bottom: -8,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -8,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#FFFFFF',
+  popupDates: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'right',
+  },
+  popupPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#22C55E',
+    textAlign: 'right',
   },
   noResultsOverlay: {
     position: 'absolute',
