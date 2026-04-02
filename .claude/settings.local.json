@@ -11,7 +11,8 @@
       "Bash(npm install:*)",
       "Bash(git checkout:*)",
       "Bash(git restore:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

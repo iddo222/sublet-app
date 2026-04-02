@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
+  Image,
   Platform,
   Pressable,
   SafeAreaView,
@@ -260,6 +262,31 @@ const [showEndPicker, setShowEndPicker] = useState(false);
     () => sublets.filter((s) => s.lat != null && s.lng != null),
     [sublets]
   );
+
+  const formatCardDate = (iso: string) => {
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${d.getFullYear()}`;
+  };
+
+  const CITY_ORDER = ['תל אביב', 'ירושלים', 'חיפה', 'הרצליה', 'רעננה', 'באר שבע'];
+  const subletsByCity = useMemo(() => {
+    const grouped: Record<string, Sublet[]> = {};
+    for (const s of sublets) {
+      const city = s.city || 'אחר';
+      if (!grouped[city]) grouped[city] = [];
+      grouped[city].push(s);
+    }
+    return Object.entries(grouped).sort(([a], [b]) => {
+      const ai = CITY_ORDER.indexOf(a);
+      const bi = CITY_ORDER.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }, [sublets]);
 
   const toggleAmenity = (key: AmenityKey) => {
     setSelectedAmenities((prev) => ({
@@ -790,6 +817,69 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                 </View>
               )}
             </View>
+
+            {/* City carousels */}
+            {!loading && subletsByCity.length > 0 && (
+              <View style={styles.carouselSection}>
+                {subletsByCity.map(([city, citySublets]) => (
+                  <View key={city} style={styles.cityGroup}>
+                    <View style={styles.cityHeaderRow}>
+                      <View style={styles.cityBadge}>
+                        <Ionicons name="location" size={16} color="#7B2FBE" />
+                        <Text style={styles.cityTitle}>{city}</Text>
+                      </View>
+                      <Text style={styles.cityCount}>{citySublets.length} דירות</Text>
+                    </View>
+
+                    <FlatList
+                      data={citySublets}
+                      horizontal
+                      inverted
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.carouselContent}
+                      keyExtractor={(item) => item.id}
+                      renderItem={({ item: sublet }) => {
+                        const hasImg = sublet.images && sublet.images.length > 0;
+                        return (
+                          <Pressable
+                            style={styles.hCard}
+                            onPress={() => router.push(`/sublet/${sublet.id}` as any)}
+                          >
+                            {hasImg ? (
+                              <Image source={{ uri: sublet.images![0] }} style={styles.hCardImage} />
+                            ) : (
+                              <View style={styles.hCardImagePlaceholder}>
+                                <Ionicons name="home-outline" size={32} color="#D1D5DB" />
+                              </View>
+                            )}
+                            <View style={styles.hCardBody}>
+                              <Text style={styles.hCardTitle} numberOfLines={1}>{sublet.title}</Text>
+                              <Text style={styles.hCardLocation} numberOfLines={1}>
+                                {sublet.neighborhood ? `${sublet.neighborhood} · ` : ''}{city}
+                              </Text>
+                              <View style={styles.hCardStats}>
+                                {sublet.num_rooms != null && (
+                                  <Text style={styles.hCardStat}>{sublet.num_rooms} חד׳</Text>
+                                )}
+                                {sublet.area_sqm != null && (
+                                  <Text style={styles.hCardStat}>{sublet.area_sqm} מ"ר</Text>
+                                )}
+                              </View>
+                              <Text style={styles.hCardDates}>
+                                {formatCardDate(sublet.available_from)} — {formatCardDate(sublet.available_until)}
+                              </Text>
+                              <Text style={styles.hCardPrice}>
+                                {sublet.price_per_month.toLocaleString()} ₪ לחודש
+                              </Text>
+                            </View>
+                          </Pressable>
+                        );
+                      }}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -1343,5 +1433,104 @@ clearDatesButtonText: {
     borderRadius: 13,
     borderWidth: 1,
     borderColor: '#111827',
+  },
+  carouselSection: {
+    marginTop: 24,
+    gap: 24,
+  },
+  cityGroup: {
+    gap: 10,
+  },
+  cityHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  cityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cityTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111111',
+    textAlign: 'right',
+  },
+  cityCount: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'right',
+  },
+  carouselContent: {
+    paddingLeft: 16,
+    gap: 12,
+  },
+  hCard: {
+    width: 220,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  hCardImage: {
+    width: '100%',
+    height: 140,
+  },
+  hCardImagePlaceholder: {
+    width: '100%',
+    height: 140,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hCardBody: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  hCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111111',
+    textAlign: 'right',
+  },
+  hCardLocation: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'right',
+  },
+  hCardStats: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+  hCardStat: {
+    fontSize: 11,
+    color: '#6B7280',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+    textAlign: 'right',
+  },
+  hCardDates: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  hCardPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#22C55E',
+    textAlign: 'right',
+    marginTop: 4,
   },
 })
