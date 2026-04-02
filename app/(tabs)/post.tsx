@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     paddingHorizontal: 24,
-    paddingTop: 18,
+    paddingTop: 48,
     paddingBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -967,6 +967,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
+    width: '100%',
   },
   dateRow: {
     flexDirection: 'row',
