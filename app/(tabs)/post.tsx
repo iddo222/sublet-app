@@ -967,7 +967,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
-    width: '100%',
+    flex: 1,
   },
   dateRow: {
     flexDirection: 'row',
