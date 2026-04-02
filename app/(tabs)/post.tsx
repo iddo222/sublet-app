@@ -1235,6 +1235,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '700',
+    textAlign: 'right',
   },
 
   // Auth gate
@@ -1281,5 +1282,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+    textAlign: 'right',
   },
 });
