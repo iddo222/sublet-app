@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
 
   // Amenity chips
   chipsGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     gap: 10,
   },
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
   },
   checkboxRow: {
     minHeight: 40,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -1169,6 +1169,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     backgroundColor: '#FAFAFA',
     alignItems: 'center',
+    alignSelf: 'flex-end',
     justifyContent: 'center',
     gap: 4,
   },
