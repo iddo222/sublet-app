@@ -815,6 +815,32 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                       <Text style={styles.noResultsSubtext}>נסה לשנות את הפילטרים</Text>
                     </View>
                   )}
+
+                  {selectedSublet && (
+                    <View style={styles.popupCard}>
+                      <Pressable style={styles.popupClose} onPress={() => setSelectedSublet(null)}>
+                        <Ionicons name="close" size={18} color="#6B7280" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          router.push(`/sublet/${selectedSublet.id}` as any);
+                          setSelectedSublet(null);
+                        }}
+                      >
+                        <Text style={styles.popupTitle} numberOfLines={1}>{selectedSublet.title}</Text>
+                        <Text style={styles.popupPrice}>
+                          {selectedSublet.price_per_month.toLocaleString()} ₪ לחודש
+                        </Text>
+                        <Text style={styles.popupInfo}>
+                          {[
+                            selectedSublet.num_rooms != null ? `${selectedSublet.num_rooms} חדרים` : null,
+                            selectedSublet.area_sqm != null ? `${selectedSublet.area_sqm} מ"ר` : null,
+                          ].filter(Boolean).join(' · ')}
+                        </Text>
+                      </Pressable>
+                      <View style={styles.popupArrow} />
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -883,38 +909,6 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
             )}
           </View>
         </ScrollView>
-
-        {selectedSublet && (
-          <Pressable
-            style={styles.overlayCard}
-            onPress={() => {
-              router.push(`/sublet/${selectedSublet.id}` as any);
-              setSelectedSublet(null);
-            }}
-          >
-            <Pressable style={styles.overlayClose} onPress={() => setSelectedSublet(null)}>
-              <Ionicons name="close" size={20} color="#6B7280" />
-            </Pressable>
-            <Text style={styles.overlayTitle} numberOfLines={1}>{selectedSublet.title}</Text>
-            <Text style={styles.overlayLocation} numberOfLines={1}>
-              {[selectedSublet.neighborhood, selectedSublet.city].filter(Boolean).join(' · ')}
-            </Text>
-            <View style={styles.overlayStatsRow}>
-              {selectedSublet.num_rooms != null && (
-                <Text style={styles.overlayStat}>{selectedSublet.num_rooms} חדרים</Text>
-              )}
-              {selectedSublet.area_sqm != null && (
-                <Text style={styles.overlayStat}>{selectedSublet.area_sqm} מ"ר</Text>
-              )}
-            </View>
-            <Text style={styles.overlayDates}>
-              {formatCardDate(selectedSublet.available_from)} — {formatCardDate(selectedSublet.available_until)}
-            </Text>
-            <Text style={styles.overlayPrice}>
-              {selectedSublet.price_per_month.toLocaleString()} ₪ לחודש
-            </Text>
-          </Pressable>
-        )}
 
         <Pressable style={styles.postButton} onPress={() => router.push('/modal')}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -1366,73 +1360,69 @@ clearDatesButtonText: {
     color: '#4B5563',
     textAlign: 'right',
   },
-  overlayCard: {
+  popupCard: {
     position: 'absolute',
-    bottom: 96,
-    left: 16,
-    right: 16,
+    top: 16,
+    alignSelf: 'center',
+    left: 24,
+    right: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
     shadowColor: '#000000',
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
-  overlayClose: {
+  popupClose: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    top: 8,
+    left: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
-  overlayTitle: {
-    fontSize: 18,
+  popupTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
     marginBottom: 4,
-    paddingLeft: 36,
+    paddingLeft: 32,
   },
-  overlayLocation: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'right',
-    marginBottom: 8,
-  },
-  overlayStatsRow: {
-    flexDirection: 'row-reverse',
-    gap: 10,
-    marginBottom: 6,
-  },
-  overlayStat: {
-    fontSize: 13,
-    color: '#4B5563',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    overflow: 'hidden',
-    textAlign: 'right',
-  },
-  overlayDates: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'right',
-    marginBottom: 8,
-  },
-  overlayPrice: {
-    fontSize: 20,
+  popupPrice: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#22C55E',
     textAlign: 'right',
+    marginBottom: 2,
+  },
+  popupInfo: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'right',
+  },
+  popupArrow: {
+    position: 'absolute',
+    bottom: -8,
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -8,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#FFFFFF',
   },
   noResultsOverlay: {
     position: 'absolute',
