@@ -496,7 +496,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
       placeholder="dd/mm/yyyy"
       placeholderTextColor="#6B7280"
       keyboardType="number-pad"
-      textAlign="left"
+      textAlign="right"
     />
 
     <Pressable onPress={() => setShowStartPicker(true)}>
@@ -526,7 +526,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
       placeholder="dd/mm/yyyy"
       placeholderTextColor="#6B7280"
       keyboardType="number-pad"
-      textAlign="left"
+      textAlign="right"
     />
 
     <Pressable onPress={() => setShowEndPicker(true)}>
@@ -842,6 +842,7 @@ clearDatesButtonText: {
   fontSize: 14,
   color: '#2563EB',
   fontWeight: '600',
+  textAlign: 'right',
 },
   dateInput: {
   flex: 1,
@@ -898,12 +899,14 @@ clearDatesButtonText: {
     lineHeight: 34,
     fontWeight: '700',
     color: '#111111',
+    textAlign: 'right',
   },
   headerSubtitle: {
     marginTop: 4,
     fontSize: 18,
     lineHeight: 24,
     color: '#4B5563',
+    textAlign: 'right',
   },
   headerAction: {
     width: 40,
@@ -927,6 +930,7 @@ clearDatesButtonText: {
     paddingRight: 46,
     fontSize: 16,
     color: '#111111',
+    textAlign: 'right',
   },
   searchIcon: {
     position: 'absolute',
@@ -1001,6 +1005,7 @@ clearDatesButtonText: {
   dateText: {
     fontSize: 16,
     color: '#111111',
+    textAlign: 'right',
   },
   additionalFiltersContent: {
     marginTop: 18,
@@ -1025,6 +1030,7 @@ clearDatesButtonText: {
   selectValue: {
     fontSize: 18,
     color: '#111111',
+    textAlign: 'right',
   },
   dropdownMenu: {
     marginTop: 8,
@@ -1076,7 +1082,7 @@ clearDatesButtonText: {
     marginBottom: 8,
     fontSize: 15,
     color: '#6B7280',
-    textAlign: 'left',
+    textAlign: 'right',
   },
   sliderTrack: {
     height: 16,
@@ -1178,11 +1184,13 @@ clearDatesButtonText: {
     lineHeight: 30,
     fontWeight: '700',
     color: '#111111',
+    textAlign: 'right',
   },
   listingSubtitle: {
     marginTop: 4,
     fontSize: 16,
     color: '#4B5563',
+    textAlign: 'right',
   },
   viewToggle: {
     flexDirection: 'row',
@@ -1240,10 +1248,12 @@ clearDatesButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#111111',
+    textAlign: 'right',
   },
   noResultsSubtext: {
     fontSize: 14,
     color: '#6B7280',
+    textAlign: 'right',
   },
   mapLegend: {
     position: 'absolute',
@@ -1311,6 +1321,7 @@ clearDatesButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+    textAlign: 'right',
   },
   realSliderWrapper: {
     marginTop: 6,

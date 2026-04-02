@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm ls:*)",
+      "Bash(wc:*)",
+      "Bash(xargs ls:*)",
+      "Read(//tmp/**)",
+      "Bash(git stash:*)",
+      "Bash(npm install:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

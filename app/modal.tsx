@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,15 +13,15 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { supabase } from '@/lib/supabase';
 
 type Step = 'phone' | 'code' | 'profile';
-
-const MOCK_VERIFICATION_CODE = '123456';
 
 export default function PhoneLoginModal() {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>('phone');
+  const [loading, setLoading] = useState(false);
 
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -38,7 +39,6 @@ export default function PhoneLoginModal() {
   const handlePhoneChange = (text: string) => {
     const digitsOnly = text.replace(/\D/g, '').slice(0, 10);
     setPhone(digitsOnly);
-
     if (phoneError) setPhoneError('');
     if (topSuccessMessage) setTopSuccessMessage('');
   };
@@ -46,13 +46,15 @@ export default function PhoneLoginModal() {
   const handleCodeChange = (text: string) => {
     const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
     setVerificationCode(digitsOnly);
-
     if (codeError) setCodeError('');
   };
 
   const isValidIsraeliMobile = (value: string) => /^05\d{8}$/.test(value);
 
-  const handleSendCode = () => {
+  // Format phone to E.164 for Supabase: 0501234567 → +972501234567
+  const toE164 = (local: string) => '+972' + local.slice(1);
+
+  const handleSendCode = async () => {
     const cleanedPhone = phone.trim();
 
     if (!cleanedPhone) {
@@ -60,39 +62,60 @@ export default function PhoneLoginModal() {
       setTopSuccessMessage('');
       return;
     }
-
     if (cleanedPhone.length !== 10) {
       setPhoneError('מספר טלפון חייב להכיל 10 ספרות');
       setTopSuccessMessage('');
       return;
     }
-
     if (!cleanedPhone.startsWith('05')) {
       setPhoneError('מספר טלפון נייד בישראל צריך להתחיל ב־05');
       setTopSuccessMessage('');
       return;
     }
-
     if (!isValidIsraeliMobile(cleanedPhone)) {
       setPhoneError('מספר הטלפון שהוזן אינו תקין');
       setTopSuccessMessage('');
       return;
     }
 
+    setLoading(true);
     setPhoneError('');
+
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: toE164(cleanedPhone),
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setPhoneError(error.message);
+      return;
+    }
+
     setVerificationCode('');
     setCodeError('');
     setTopSuccessMessage('קוד אימות נשלח למספר הטלפון שלך');
     setStep('code');
   };
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
       setCodeError('יש להזין קוד אימות בן 6 ספרות');
       return;
     }
 
-    if (verificationCode !== MOCK_VERIFICATION_CODE) {
+    setLoading(true);
+    setCodeError('');
+
+    const { error } = await supabase.auth.verifyOtp({
+      phone: toE164(phone.trim()),
+      token: verificationCode,
+      type: 'sms',
+    });
+
+    setLoading(false);
+
+    if (error) {
       setCodeError('קוד האימות שהוזן שגוי');
       return;
     }
@@ -114,7 +137,7 @@ export default function PhoneLoginModal() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }, [email]);
 
-  const handleSubmitProfile = () => {
+  const handleSubmitProfile = async () => {
     const trimmedName = fullName.trim();
     const trimmedBio = bio.trim();
     const trimmedEmail = email.trim();
@@ -124,32 +147,54 @@ export default function PhoneLoginModal() {
       setProfileSuccess('');
       return;
     }
-
     if (!trimmedBio) {
       setProfileError('יש להזין כמה מילים על עצמך');
       setProfileSuccess('');
       return;
     }
-
     if (trimmedBio.length > 200) {
       setProfileError('תיאור עצמי יכול להכיל עד 200 תווים');
       setProfileSuccess('');
       return;
     }
-
     if (trimmedEmail && !isOptionalEmailValid) {
       setProfileError('כתובת האימייל אינה תקינה');
       setProfileSuccess('');
       return;
     }
 
+    setLoading(true);
     setProfileError('');
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      setProfileError('שגיאה בזיהוי המשתמש. נסה שוב');
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
+      full_name: trimmedName,
+      phone: phone.trim(),
+      bio: trimmedBio,
+      email: trimmedEmail || null,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setProfileError(`שגיאה בשמירת הפרופיל: ${error.message}`);
+      return;
+    }
+
     setProfileSuccess('הפרופיל נשמר בהצלחה');
+    setTimeout(() => router.replace('/(tabs)'), 1000);
   };
 
   const renderTopToast = () => {
     if (!topSuccessMessage) return null;
-
     return (
       <View style={styles.topToast}>
         <Ionicons name="checkmark-circle" size={22} color="#111111" />
@@ -161,11 +206,10 @@ export default function PhoneLoginModal() {
   const renderPhoneStep = () => (
     <>
       <Text style={styles.title}>התחבר עם מספר טלפון</Text>
-      <Text style={styles.subtitle}>כדי לפרסם סאבלט – צריך הזדהות קצרה</Text>
+      <Text style={styles.subtitle}>כדי לפרסם סאבלט - צריך הזדהות קצרה</Text>
 
       <View style={styles.fieldBlock}>
         <Text style={styles.label}>מספר טלפון</Text>
-
         <View style={[styles.inputWrapper, phoneError ? styles.inputWrapperError : null]}>
           <TextInput
             style={styles.input}
@@ -179,7 +223,6 @@ export default function PhoneLoginModal() {
           />
           <Ionicons name="call-outline" size={24} color="#9CA3AF" />
         </View>
-
         {phoneError ? (
           <View style={styles.inlineErrorBox}>
             <Ionicons name="alert-circle" size={18} color="#D97706" />
@@ -193,14 +236,21 @@ export default function PhoneLoginModal() {
           <Ionicons name="shield-checkmark-outline" size={22} color="#2563EB" />
           <Text style={styles.infoTitleBlue}>אימות ללא סיסמה</Text>
         </View>
-
         <Text style={styles.infoTextBlue}>
           נשלח לך קוד אימות חד-פעמי בהודעת SMS למספר הטלפון שהזנת
         </Text>
       </View>
 
-      <Pressable style={styles.primaryButton} onPress={handleSendCode}>
-        <Text style={styles.primaryButtonText}>שלח קוד אימות</Text>
+      <Pressable
+        style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+        onPress={handleSendCode}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#FFFFFF" size="small" />
+        ) : (
+          <Text style={styles.primaryButtonText}>שלח קוד אימות</Text>
+        )}
       </Pressable>
     </>
   );
@@ -208,20 +258,18 @@ export default function PhoneLoginModal() {
   const renderCodeStep = () => (
     <>
       <Text style={styles.title}>הזן קוד אימות</Text>
-      <Text style={styles.subtitle}>כדי לפרסם סאבלט – צריך הזדהות קצרה</Text>
+      <Text style={styles.subtitle}>כדי לפרסם סאבלט - צריך הזדהות קצרה</Text>
 
       <View style={styles.codeHero}>
         <View style={styles.codeHeroIconCircle}>
           <Ionicons name="shield-checkmark-outline" size={40} color="#2563EB" />
         </View>
-
         <Text style={styles.codeHeroText}>שלחנו קוד אימות בן 6 ספרות למספר</Text>
         <Text style={styles.codePhone}>{phone}</Text>
       </View>
 
       <View style={styles.fieldBlock}>
         <Text style={styles.label}>קוד אימות (6 ספרות)</Text>
-
         <View style={[styles.inputWrapper, codeError ? styles.inputWrapperError : null]}>
           <TextInput
             style={[styles.input, styles.codeInput]}
@@ -234,7 +282,6 @@ export default function PhoneLoginModal() {
             maxLength={6}
           />
         </View>
-
         {codeError ? (
           <View style={styles.inlineErrorBox}>
             <Ionicons name="alert-circle" size={18} color="#D97706" />
@@ -244,20 +291,21 @@ export default function PhoneLoginModal() {
       </View>
 
       <Pressable
-        style={[
-          styles.primaryButton,
-          verificationCode.length !== 6 ? styles.primaryButtonDisabled : null,
-        ]}
+        style={[styles.primaryButton, (verificationCode.length !== 6 || loading) && styles.primaryButtonDisabled]}
         onPress={handleVerifyCode}
+        disabled={verificationCode.length !== 6 || loading}
       >
-        <Text style={styles.primaryButtonText}>אמת קוד</Text>
+        {loading ? (
+          <ActivityIndicator color="#FFFFFF" size="small" />
+        ) : (
+          <Text style={styles.primaryButtonText}>אמת קוד</Text>
+        )}
       </Pressable>
 
       <View style={styles.codeLinksWrap}>
-        <Pressable onPress={handleSendCode}>
+        <Pressable onPress={handleSendCode} disabled={loading}>
           <Text style={styles.linkPrimary}>לא קיבלת קוד? שלח שוב</Text>
         </Pressable>
-
         <Pressable onPress={handleBackToPhone}>
           <Text style={styles.linkSecondary}>שנה מספר טלפון</Text>
         </Pressable>
@@ -268,22 +316,20 @@ export default function PhoneLoginModal() {
   const renderProfileStep = () => (
     <>
       <Text style={styles.title}>השלם את הפרופיל שלך</Text>
-      <Text style={styles.subtitle}>כדי לפרסם סאבלט – צריך הזדהות קצרה</Text>
+      <Text style={styles.subtitle}>כדי לפרסם סאבלט - צריך הזדהות קצרה</Text>
 
       <View style={styles.profileTopRow}>
         <View style={styles.profileAvatarColumn}>
-          <Text style={styles.label}>תמונת פרופיל *</Text>
+          <Text style={styles.label}>תמונת פרופיל</Text>
           <View style={styles.avatarCircle}>
             <Ionicons name="person-outline" size={58} color="#9CA3AF" />
           </View>
         </View>
-
         <View style={styles.uploadColumn}>
           <Pressable style={styles.uploadButton}>
             <Ionicons name="camera-outline" size={22} color="#111111" />
             <Text style={styles.uploadButtonText}>העלה תמונה</Text>
           </Pressable>
-
           <Text style={styles.helperText}>תמונה אמיתית עוזרת לבנות אמון</Text>
         </View>
       </View>
@@ -354,7 +400,7 @@ export default function PhoneLoginModal() {
           <Text style={styles.whyTitle}>למה אנחנו שואלים?</Text>
         </View>
         <Text style={styles.whyText}>
-          פרופיל אמיתי ואנושי עוזר לבנות אמון בין הדיירים למשכירים. אנחנו לא מסננים אנשים – רק עוזרים ליצור קהילה בטוחה יותר.
+          פרופיל אמיתי ואנושי עוזר לבנות אמון בין הדיירים למשכירים. אנחנו לא מסננים אנשים - רק עוזרים ליצור קהילה בטוחה יותר.
         </Text>
       </View>
 
@@ -372,8 +418,16 @@ export default function PhoneLoginModal() {
         </View>
       ) : null}
 
-      <Pressable style={styles.primaryButton} onPress={handleSubmitProfile}>
-        <Text style={styles.primaryButtonText}>השלם הרשמה</Text>
+      <Pressable
+        style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+        onPress={handleSubmitProfile}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#FFFFFF" size="small" />
+        ) : (
+          <Text style={styles.primaryButtonText}>השלם הרשמה</Text>
+        )}
       </Pressable>
     </>
   );
@@ -433,7 +487,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
@@ -521,10 +575,11 @@ const styles = StyleSheet.create({
     color: '#92400E',
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'right',
   },
   inlineSuccessBox: {
     marginBottom: 16,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#DCFCE7',
     borderWidth: 1,
@@ -548,7 +603,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   infoTitleRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 10,
@@ -568,7 +623,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#03051A',
+    backgroundColor: '#7B2FBE',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
@@ -613,7 +668,7 @@ const styles = StyleSheet.create({
   },
   linkPrimary: {
     fontSize: 16,
-    color: '#2563EB',
+    color: '#7B2FBE',
     fontWeight: '700',
   },
   linkSecondary: {
@@ -622,7 +677,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profileTopRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 26,
@@ -653,7 +708,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D1D5DB',
     backgroundColor: '#FFFFFF',
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
@@ -685,7 +740,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 13,
     color: '#6B7280',
-    textAlign: 'left',
+    textAlign: 'right',
   },
   whyBox: {
     backgroundColor: '#FEF3C7',
@@ -697,7 +752,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   whyTitleRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 10,
