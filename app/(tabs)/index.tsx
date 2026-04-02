@@ -463,9 +463,9 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                 <MaterialCommunityIcons name="office-building-outline" size={24} color="#FFFFFF" />
               </View>
 
-              <View>
+              <View style={styles.headerTextWrap}>
                 <Text style={styles.headerTitle}>סאבלטים זמינים - ללא תיווך</Text>
-                <Text style={styles.headerSubtitle}>Find your perfect apartment</Text>
+                <Text style={styles.headerSubtitle}>מצא את הדירה המושלמת</Text>
               </View>
             </View>
 
@@ -976,6 +976,11 @@ clearDatesButtonText: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
+  },
+  headerTextWrap: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   headerIcon: {
     width: 58,
@@ -1215,6 +1220,7 @@ clearDatesButtonText: {
     color: '#111111',
     textAlign: 'right',
     marginBottom: 14,
+    width: '100%',
   },
   checkboxGrid: {
     flexDirection: 'row-reverse',
