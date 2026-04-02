@@ -1452,13 +1452,13 @@ clearDatesButtonText: {
     gap: 10,
   },
   cityHeaderRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 2,
   },
   cityBadge: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 6,
   },
