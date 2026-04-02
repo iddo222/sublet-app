@@ -1138,7 +1138,7 @@ const styles = StyleSheet.create({
 
   // Images
   imagesGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     gap: 10,
   },
