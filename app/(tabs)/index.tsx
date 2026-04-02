@@ -437,7 +437,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
               </View>
 
               <View>
-                <Text style={styles.headerTitle}>Available Sublets - No Brokers</Text>
+                <Text style={styles.headerTitle}>סאבלטים זמינים - ללא תיווך</Text>
                 <Text style={styles.headerSubtitle}>Find your perfect apartment</Text>
               </View>
             </View>
@@ -795,7 +795,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
 
         <Pressable style={styles.postButton} onPress={() => router.push('/modal')}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
-          <Text style={styles.postButtonText}>Post Sublet</Text>
+          <Text style={styles.postButtonText}>+ פרסם סאבלט</Text>
         </Pressable>
       </View>
     </SafeAreaView>
