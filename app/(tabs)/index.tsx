@@ -16,7 +16,7 @@ import {
   TextInput,
   View
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Callout, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSublets, type Sublet, type SubletFilters } from '@/lib/hooks/useSublets';
 
 
@@ -786,10 +786,30 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                       <Marker
                         key={sublet.id}
                         coordinate={{ latitude: sublet.lat!, longitude: sublet.lng! }}
-                        title={sublet.title}
-                        description={`₪${sublet.price_per_month.toLocaleString()} לחודש`}
                         pinColor={getMarkerColor(sublet.available_from)}
-                      />
+                      >
+                        <Callout
+                          tooltip
+                          onPress={() => router.push(`/sublet/${sublet.id}` as any)}
+                        >
+                          <View style={styles.callout}>
+                            <Text style={styles.calloutTitle} numberOfLines={1}>{sublet.title}</Text>
+                            <Text style={styles.calloutLocation} numberOfLines={1}>
+                              {[sublet.neighborhood, sublet.city].filter(Boolean).join(' · ')}
+                            </Text>
+                            <Text style={styles.calloutPrice}>
+                              ₪{sublet.price_per_month.toLocaleString()} לחודש
+                            </Text>
+                            {sublet.num_rooms != null && (
+                              <Text style={styles.calloutDetail}>{sublet.num_rooms} חדרים</Text>
+                            )}
+                            <Text style={styles.calloutDates}>
+                              {formatCardDate(sublet.available_from)} — {formatCardDate(sublet.available_until)}
+                            </Text>
+                            <Text style={styles.calloutCta}>לחץ לפרטים נוספים</Text>
+                          </View>
+                        </Callout>
+                      </Marker>
                     ))}
                   </MapView>
 
@@ -1331,6 +1351,57 @@ clearDatesButtonText: {
   mapLoadingText: {
     fontSize: 16,
     color: '#4B5563',
+    textAlign: 'right',
+  },
+  callout: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minWidth: 200,
+    maxWidth: 260,
+    shadowColor: '#000000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111111',
+    textAlign: 'right',
+    marginBottom: 2,
+  },
+  calloutLocation: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'right',
+    marginBottom: 6,
+  },
+  calloutPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#22C55E',
+    textAlign: 'right',
+    marginBottom: 4,
+  },
+  calloutDetail: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'right',
+    marginBottom: 2,
+  },
+  calloutDates: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'right',
+    marginBottom: 6,
+  },
+  calloutCta: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#7B2FBE',
     textAlign: 'right',
   },
   noResultsOverlay: {
