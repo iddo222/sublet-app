@@ -16,7 +16,7 @@ import {
   TextInput,
   View
 } from 'react-native';
-import MapView, { Callout, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSublets, type Sublet, type SubletFilters } from '@/lib/hooks/useSublets';
 
 
@@ -210,6 +210,7 @@ const [showEndPicker, setShowEndPicker] = useState(false);
   });
 
   const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
+  const [selectedSublet, setSelectedSublet] = useState<Sublet | null>(null);
 
   const locationLabel = useMemo(
     () => LOCATION_OPTIONS.find((option) => option.value === location)?.label ?? 'הכל',
@@ -781,35 +782,15 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                     provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
                     initialRegion={ISRAEL_REGION}
                     showsUserLocation={false}
+                    onPress={() => setSelectedSublet(null)}
                   >
                     {mappableSublets.map((sublet) => (
                       <Marker
                         key={sublet.id}
                         coordinate={{ latitude: sublet.lat!, longitude: sublet.lng! }}
                         pinColor={getMarkerColor(sublet.available_from)}
-                      >
-                        <Callout
-                          tooltip={false}
-                          onPress={() => router.push(`/sublet/${sublet.id}` as any)}
-                        >
-                          <View style={styles.callout}>
-                            <Text style={styles.calloutTitle} numberOfLines={1}>{sublet.title}</Text>
-                            <Text style={styles.calloutLocation} numberOfLines={1}>
-                              {[sublet.neighborhood, sublet.city].filter(Boolean).join(' · ')}
-                            </Text>
-                            <Text style={styles.calloutPrice}>
-                              ₪{sublet.price_per_month.toLocaleString()} לחודש
-                            </Text>
-                            {sublet.num_rooms != null && (
-                              <Text style={styles.calloutDetail}>{sublet.num_rooms} חדרים</Text>
-                            )}
-                            <Text style={styles.calloutDates}>
-                              {formatCardDate(sublet.available_from)} — {formatCardDate(sublet.available_until)}
-                            </Text>
-                            <Text style={styles.calloutCta}>לחץ לפרטים נוספים</Text>
-                          </View>
-                        </Callout>
-                      </Marker>
+                        onPress={() => setSelectedSublet(sublet)}
+                      />
                     ))}
                   </MapView>
 
@@ -902,6 +883,38 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
             )}
           </View>
         </ScrollView>
+
+        {selectedSublet && (
+          <Pressable
+            style={styles.overlayCard}
+            onPress={() => {
+              router.push(`/sublet/${selectedSublet.id}` as any);
+              setSelectedSublet(null);
+            }}
+          >
+            <Pressable style={styles.overlayClose} onPress={() => setSelectedSublet(null)}>
+              <Ionicons name="close" size={20} color="#6B7280" />
+            </Pressable>
+            <Text style={styles.overlayTitle} numberOfLines={1}>{selectedSublet.title}</Text>
+            <Text style={styles.overlayLocation} numberOfLines={1}>
+              {[selectedSublet.neighborhood, selectedSublet.city].filter(Boolean).join(' · ')}
+            </Text>
+            <View style={styles.overlayStatsRow}>
+              {selectedSublet.num_rooms != null && (
+                <Text style={styles.overlayStat}>{selectedSublet.num_rooms} חדרים</Text>
+              )}
+              {selectedSublet.area_sqm != null && (
+                <Text style={styles.overlayStat}>{selectedSublet.area_sqm} מ"ר</Text>
+              )}
+            </View>
+            <Text style={styles.overlayDates}>
+              {formatCardDate(selectedSublet.available_from)} — {formatCardDate(selectedSublet.available_until)}
+            </Text>
+            <Text style={styles.overlayPrice}>
+              {selectedSublet.price_per_month.toLocaleString()} ₪ לחודש
+            </Text>
+          </Pressable>
+        )}
 
         <Pressable style={styles.postButton} onPress={() => router.push('/modal')}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -1353,54 +1366,72 @@ clearDatesButtonText: {
     color: '#4B5563',
     textAlign: 'right',
   },
-  callout: {
+  overlayCard: {
+    position: 'absolute',
+    bottom: 96,
+    left: 16,
+    right: 16,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: 220,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     shadowColor: '#000000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 8,
   },
-  calloutTitle: {
-    fontSize: 16,
+  overlayClose: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  overlayTitle: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#111111',
     textAlign: 'right',
-    marginBottom: 2,
+    marginBottom: 4,
+    paddingLeft: 36,
   },
-  calloutLocation: {
-    fontSize: 13,
+  overlayLocation: {
+    fontSize: 14,
     color: '#6B7280',
     textAlign: 'right',
+    marginBottom: 8,
+  },
+  overlayStatsRow: {
+    flexDirection: 'row-reverse',
+    gap: 10,
     marginBottom: 6,
   },
-  calloutPrice: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#22C55E',
-    textAlign: 'right',
-    marginBottom: 4,
-  },
-  calloutDetail: {
+  overlayStat: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#4B5563',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    overflow: 'hidden',
     textAlign: 'right',
-    marginBottom: 2,
   },
-  calloutDates: {
-    fontSize: 12,
+  overlayDates: {
+    fontSize: 13,
     color: '#9CA3AF',
     textAlign: 'right',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  calloutCta: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#7B2FBE',
+  overlayPrice: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#22C55E',
     textAlign: 'right',
   },
   noResultsOverlay: {
