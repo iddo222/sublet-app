@@ -1237,7 +1237,7 @@ clearDatesButtonText: {
   },
   checkboxRow: {
     minHeight: 34,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
