@@ -789,7 +789,7 @@ const handleEndPickerChange = (event: any, selectedDate?: Date) => {
                         pinColor={getMarkerColor(sublet.available_from)}
                       >
                         <Callout
-                          tooltip
+                          tooltip={false}
                           onPress={() => router.push(`/sublet/${sublet.id}` as any)}
                         >
                           <View style={styles.callout}>
@@ -1358,8 +1358,7 @@ clearDatesButtonText: {
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    minWidth: 200,
-    maxWidth: 260,
+    width: 220,
     shadowColor: '#000000',
     shadowOpacity: 0.15,
     shadowRadius: 8,
